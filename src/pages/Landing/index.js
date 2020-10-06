@@ -13,12 +13,22 @@ import searchIcon from '../../assets/images/search-icon.png';
 import api from '../../services/api';
 
 import 'react-toastify/dist/ReactToastify.css';
-import '../../assets/styles/global.css';
-import './styles.css';
 
+import {
+  Container,
+  Header,
+  Logo,
+  Github,
+  Description,
+  Form,
+  SearchBox,
+  Wrapper,
+  Users,
+  Footer,
+} from './styles';
 
 function Landing() {
-  
+
   const [username, setUsername] = useState('');
   const [users, setUsers] = useState([]);
   const [topLanguagesFirstUser, setTopLanguagesFirstUser] = useState([]);
@@ -27,36 +37,36 @@ function Landing() {
   const [loading, setLoading] = useState(false);
   const [matchModal, setMatchModal] = useState(false);
   const [itsAMatch, setItsAMatch] = useState('');
-  
+
   async function handleSearchUser(){
-    //verifica se campo do username eh vazio 
+    //verifica se campo do username eh vazio
     if(username === '')
       toast.error('Erro ao buscar usuário. O campo não pode ser vazio!');
     else{
       try{
         setLoading(true);
-  
+
         //faz uma requisicao para obter os dados do usuario
         const response = await api.get(`/${username}`);
         const { name, login, avatar_url, html_url } = response.data;
-            
+
         //se a requisicao acima der ok, executa a funcao abaixo
         if(response.status === 200){
           getLanguages({ name, login, avatar_url, html_url });
         }
-  
+
       } catch(err){
           setLoading(false);
-          
-          //verifica se o status da requisicao eh 404 
+
+          //verifica se o status da requisicao eh 404
           if(err.request.status === 404)
             toast.error('Usuário não encontrado. Digite um usuário válido!');
           else
-            toast.error('Erro ao buscar usuário. Tente novamente.');       
+            toast.error('Erro ao buscar usuário. Tente novamente.');
         }
       }
     }
-    
+
   async function getLanguages({ name, login, avatar_url, html_url }){
     try{
       //faz uma requisicao get para obter os repositorios do user
@@ -76,7 +86,7 @@ function Landing() {
         let value = reposLanguages[i];
 
         if(value)
-          languagesFrequency[value] = (languagesFrequency[value] || 0) + 1; 
+          languagesFrequency[value] = (languagesFrequency[value] || 0) + 1;
       }
 
       let mostUsedLanguage = getMostUsedLanguage(languagesFrequency);
@@ -84,7 +94,7 @@ function Landing() {
       setUsers([
         ...users,
         {
-          name, 
+          name,
           login,
           avatar_url,
           html_url,
@@ -96,7 +106,7 @@ function Landing() {
         setTopLanguagesFirstUser(mostUsedLanguage);
       else
         setTopLanguagesSectUser(mostUsedLanguage);
- 
+
       clearUsernameValue();
       setLoading(false);
 
@@ -111,8 +121,8 @@ function Landing() {
     // faz um filtro nas chaves do objeto languagesFrequency
     // calcula o valor maximo presente nesse objeto
     // e retorna a(s) chave(s) que tem valor maximo
-    // ou seja, retorna a linguagem mais usada 
-    
+    // ou seja, retorna a linguagem mais usada
+
     return Object.keys(languagesFrequency).filter(value => {
       return languagesFrequency[value] === Math.max.apply(null, Object.values(languagesFrequency));
     });
@@ -120,11 +130,11 @@ function Landing() {
 
   function verifyMatch(){
     setMatchModal(true);
-    
-    let itsAMatch = 0;    
-    
+
+    let itsAMatch = 0;
+
     /*percorre o array top languages first user
-    e verifica se o segundo array 
+    e verifica se o segundo array
     tem algum elemento em comum com o primeiro array
     */
     for(let j=0; j < topLanguagesFirstUser.length; j++){
@@ -132,12 +142,12 @@ function Landing() {
         itsAMatch+=1;
       }
     }
-    
+
     if(itsAMatch > 0)
       setItsAMatch('s');
     else
       setItsAMatch('n');
-  
+
   }
 
   function clear(){
@@ -157,74 +167,69 @@ function Landing() {
   function addClassLandingPage(){
     setClassHeaderFormTop('start');
   }
-  
+
   function closeModal(){
     setMatchModal(false);
   }
 
   return (
-    <div 
-      id={classHeaderFormTop ? `landing-page-${classHeaderFormTop}` : null}
-      className="landing-page"
-    >
+    <Container start={classHeaderFormTop ? classHeaderFormTop : null}>
       <ToastContainer />
 
-      <header className="header">
-        <div className="logo">
-          <div className="github">
+      <Header>
+        <Logo>
+          <Github>
             <h1>GitHub</h1>
-          </div>
+          </Github>
           <h1>Matcher</h1>
-        </div>
-        <p className="description">Encontre seu parceiro de programação</p>
-        
-        <form 
-          className={
-            users.length === 2 ? "hide-form" : null
-          }
+        </Logo>
+        <Description>Encontre seu parceiro de programação</Description>
+
+        <Form
+          hide={users.length === 2 ? true : false}
           onSubmit={ e => {
             e.preventDefault();
             handleSearchUser();
           }}
         >
-          <div className="box-search">
-            <input 
-              type="text" 
+          <SearchBox>
+            <input
+              type="text"
               value={username}
               placeholder="Digite o nome de um usuário do GitHub"
               onChange={(e) => {setUsername(e.target.value)}}
-              onClick={addClassLandingPage} 
+              onClick={addClassLandingPage}
             />
 
             <button type={users.length === 2 ? "button" : "submit"}>
               <p>Buscar</p>
               <img src={searchIcon} alt="Ícone de fogo"/>
             </button>
-          </div>
-        </form>
-      </header>
+          </SearchBox>
+        </Form>
+      </Header>
 
-      <main className="main">
+      <Wrapper>
         <Loading value={loading}/>
 
-        <div className="users">
+        <Users>
           {
             !itsAMatch ? (
               users.map((user, index) => {
                 return (
-                  <UserHeader 
+                  <UserHeader
                     key={index}
                     name={user.name}
                     login={user.login}
                     avatar_url={user.avatar_url}
                   />
                 )
-              })  
+              })
             )
             : (
               users.map((user, index) => {
                 return (
-                  <UserCard 
+                  <UserCard
                     key={index}
                     name={user.name}
                     login={user.login}
@@ -237,12 +242,12 @@ function Landing() {
               })
             )
           }
-        </div>
+        </Users>
 
         {
           !itsAMatch ? (
-            <Button 
-              buttonState={users.length === 2 ? "show verify" : "hide"} 
+            <Button
+              buttonState={users.length === 2 ? "show verify" : "hide"}
               onClick={verifyMatch}
             >
               Verificar
@@ -250,37 +255,37 @@ function Landing() {
           )
           :
           (
-            <Button 
-              buttonState="show new-search" 
+            <Button
+              buttonState="show new-search"
               onClick={clear}
             >
               Nova busca
-            </Button> 
+            </Button>
           )
         }
 
         <MatchModal value={matchModal} msg={itsAMatch}>
-          <button 
+          <button
             onClick={closeModal}>
               Fechar
           </button>
         </MatchModal>
-        
-      </main> 
 
-      <footer className="footer">
-        <p>Feito com 
+      </Wrapper>
+
+      <Footer>
+        <p>Feito com
           <Emoji text=" ❤️ "/>
-          por 
-          <a 
-            href="https://www.linkedin.com/in/mariane-felix-642350171/" 
-            target="_blank" 
+          por
+          <a
+            href="https://www.linkedin.com/in/mariane-felix-642350171/"
+            target="_blank"
             rel="noopener noreferrer">
               Mariane Felix
           </a>
         </p>
-      </footer>
-    </div>
+      </Footer>
+    </Container>
   );
 }
 
